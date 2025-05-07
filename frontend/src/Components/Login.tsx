@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState,useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaLock } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
 
 interface LoginData {
   email: string;
@@ -12,6 +13,15 @@ const Login: React.FC = () => {
   const [loginData, setLoginData] = useState<LoginData>({ email: '', password: '' });
   const [errors, setErrors] = useState({ email: '', password: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+
+  
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    navigate("/dashboard");
+  }
+}, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginData({ ...loginData, [e.target.name]: e.target.value });
@@ -25,15 +35,42 @@ const Login: React.FC = () => {
     return Object.values(tempErrors).every((x) => x === '');
   };
 
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validate()) {
-      setIsSubmitting(true);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Logging in:', loginData);
+  e.preventDefault();
+  if (validate()) {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/user/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        toast.error(data.message);
+      } 
+      else if(data.status != true){
+        toast.error(data.message);
+      }
+      else {
+        toast.success("Login Successful");
+        localStorage.setItem("token", data.message);
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1500); 
+      }
+
+    } catch (error) {
+      console.error('Error during registration:', error);
+    } finally {
       setIsSubmitting(false);
     }
-  };
+  }
+};
+
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
