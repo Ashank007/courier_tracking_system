@@ -1,15 +1,84 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState,useEffect } from 'react';
+import { Link ,useNavigate} from 'react-router-dom';
+
+interface Data {
+ id:number;
+ user_id:number;
+ tracking_id:string;
+ action:string;
+ created_at:string;
+ 
+}
 
 const Dashboard: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [data,setData] = useState<Data[]>([]);
+  const [user,setUser] = useState("");
+  const [token,setToken] = useState("");
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     window.location.href = '/login';
   };
+  
+  const navigate = useNavigate();
 
-  const toggleMenu = () => {
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setToken(token || "");
+  },[])
+
+  useEffect(() => {
+    RecentActivites();
+    HandleProfileData();
+  },[token])
+
+const HandleProfileData = async () => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/user/info`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch');
+    }
+    const data = await response.json();
+    setUser(data.message);
+  } catch (error:any) {
+    console.error('Error:', error.message);
+  }
+};
+
+
+ const RecentActivites = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/courier/recent`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${token}`,
+          },
+        });
+
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem('token');
+          navigate('/login');
+          return;
+        }
+
+        const data = await response.json();
+        setData(data.message);
+        
+      } catch (err) {
+        console.error('Fetch couriers error:', err);
+      }
+    };
+
+const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
@@ -140,7 +209,7 @@ const Dashboard: React.FC = () => {
       {/* Hero Section */}
       <section className="container mx-auto px-6 py-10 text-center relative z-10">
         <h2 className="text-4xl font-bold text-[#1F2A44] mb-3 tracking-tight animate-fade-in">
-          Track with Ease
+          Welcome, {user ? user.username : 'User'}!
         </h2>
         <p className="text-lg text-[#1F2A44] max-w-md mx-auto font-medium leading-relaxed animate-fade-in delay-100">
           Ship, track, and manage your deliveries seamlessly.
@@ -233,15 +302,26 @@ const Dashboard: React.FC = () => {
           </h3>
           <div className="bg-gradient-to-br from-[#DCFCE7] to-[#BBF7D0] p-5 rounded-lg shadow-sm animate-slide-up delay-400">
             <ul className="space-y-3">
-              <li className="text-sm font-medium text-[#1F2A44]">
-                Shipment #123 added on May 7, 2025
-              </li>
-              <li className="text-sm font-medium text-[#1F2A44]">
-                Shipment #456 tracked on May 6, 2025
-              </li>
-              <li className="text-sm font-medium text-[#1F2A44]">
-                Shipment #789 deleted on May 5, 2025
-              </li>
+              {!Array.isArray(data) || data.length === 0 ? (
+                <li className="text-sm font-medium text-[#1F2A44]">
+                  No recent activity found.
+                </li>
+              ) : (
+                data.map((activity) => (
+                  <li
+                    key={activity.id}
+                    className="text-sm font-medium text-[#1F2A44]"
+                  >
+                    Courier <span className="font-bold">{activity.tracking_id}</span>{" "}
+                    <span className={activity.action === "added" ? "text-green-600" : "text-red-600"}>
+                      {activity.action}
+                    </span>{" "}
+                    on{" "}
+                    <p>{new Date(activity.created_at.replace(' ', 'T') + 'Z').toLocaleString()}</p>
+
+                  </li>
+                ))
+              )}
             </ul>
           </div>
         </div>

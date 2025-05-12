@@ -1,27 +1,27 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 import { toast } from 'react-toastify';
+
+// Define type for decoded token
+type DecodedToken = {
+  email: string;
+  [key: string]: any; // Allow other fields in the decoded token
+};
+
 const AddCourier: React.FC = () => {
-  const [token,setToken] = useState("");
-  const [decodeddata,setDecodedData] = useState();
+  const [token, setToken] = useState<string>('');
+  const [decodeddata, setDecodedData] = useState<DecodedToken | null>(null);
 
+  // Fetch the token from localStorage and decode it
   useEffect(() => {
-  const fetchtoken = localStorage.getItem('token');
-  setToken(fetchtoken || "");
-  },[])
-
-  useEffect(() => {
-    decodedata();
-  },[token])
-
-  const decodedata = () => {
-  if (token) {
-  const decoded = jwtDecode(token);
-  setDecodedData(decoded || "");
-}
-}
+    const fetchtoken = localStorage.getItem('token');
+    if (fetchtoken) {
+      setToken(fetchtoken);
+      const decoded = jwtDecode<DecodedToken>(fetchtoken);
+      setDecodedData(decoded);
+    }
+  }, []);
 
   const [form, setForm] = useState({
     receiver: '',
@@ -44,42 +44,53 @@ const AddCourier: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!decodeddata?.email) {
+      toast.error("User email not found in token");
+      return;
+    }
     const trackingId = generateTrackingId();
-    const data = {sender:decodeddata?.email,...form,trackingId};
+    const data = {
+      sender: decodeddata.email,
+      ...form,
+      trackingId
+    };
     HandleAddCourier(data);
   };
 
-  const HandleAddCourier = async (courierdata:any) => {
-  try {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/courier/create`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `${token}`
-      },
-      body:JSON.stringify(courierdata)
-    });
-
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch');
-    }
-    const data = await response.json();
-    console.log(data.status);
-    
-    if(data.status == true){
-      toast.success(data.message);
-      setForm({
-        receiver: '',
-        origin: '',
-        destination: '',
+  const HandleAddCourier = async (courierdata: any) => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/courier/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token}`
+        },
+        body: JSON.stringify(courierdata)
       });
-    }
-  } catch (error:any) {
-    console.error('Error:', error.message);
-  }
-};
 
+      if (!response.ok) {
+        const error = await response.json();
+        console.log(error);
+        
+        throw new Error('Failed to fetch');
+      }
+
+      const data = await response.json();
+      console.log(data.status);
+
+      if (data.status === true) {
+        toast.success(data.message);
+        setForm({
+          receiver: '',
+          origin: '',
+          destination: '',
+        });
+      }
+    } catch (error: any) {
+      console.error('Error:', error.message);
+      toast.error('Error adding courier');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F0FDF4] to-[#BBF7D0] text-[#1F2A44] relative overflow-hidden flex flex-col">
@@ -124,7 +135,7 @@ const AddCourier: React.FC = () => {
             <input
               value={decodeddata?.email || ''}
               required
-              disabled 
+              disabled
               className="w-full px-4 py-2 bg-white/80 border border-[#22C55E]/30 rounded-md text-[#1F2A44] placeholder:text-[#1F2A44]/60 focus:outline-none focus:ring-2 focus:ring-[#22C55E] text-sm font-medium animate-slide-up delay-100"
             />
             <input
@@ -238,4 +249,5 @@ const AddCourier: React.FC = () => {
 };
 
 export default AddCourier;
+
 

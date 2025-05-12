@@ -1,6 +1,6 @@
 import React, { useState,useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaEnvelope, FaLock } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 
@@ -12,6 +12,7 @@ interface LoginData {
 const Login: React.FC = () => {
   const [loginData, setLoginData] = useState<LoginData>({ email: '', password: '' });
   const [errors, setErrors] = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -22,6 +23,10 @@ const Login: React.FC = () => {
     navigate("/dashboard");
   }
 }, []);
+
+const toggleShowPassword = () => {
+  setShowPassword(!showPassword);
+};
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLoginData({ ...loginData, [e.target.name]: e.target.value });
@@ -35,8 +40,7 @@ const Login: React.FC = () => {
     return Object.values(tempErrors).every((x) => x === '');
   };
 
-
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   if (validate()) {
     setIsSubmitting(true);
@@ -49,22 +53,30 @@ const Login: React.FC = () => {
         body: JSON.stringify(loginData),
       });
       const data = await response.json();
+
       if (!response.ok) {
         toast.error(data.message);
       } 
-      else if(data.status != true){
+      else if (data.status !== true) {
         toast.error(data.message);
       }
       else {
         toast.success("Login Successful");
         localStorage.setItem("token", data.message);
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 1500); 
+
+        if (loginData.email === "admin@gmail.com" && loginData.password === "admin1234") {
+          setTimeout(() => {
+            navigate("/admin");
+          }, 1500); 
+        } else {
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 1500); 
+        }
       }
 
     } catch (error) {
-      console.error('Error during registration:', error);
+      console.error('Error during login:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -133,7 +145,7 @@ const Login: React.FC = () => {
                 <FaLock />
               </div>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 id="password"
                 name="password"
                 value={loginData.password}
@@ -144,6 +156,14 @@ const Login: React.FC = () => {
                 aria-required="true"
                 aria-describedby={errors.password ? 'password-error' : undefined}
               />
+              <button
+              type="button"
+              onClick={toggleShowPassword}
+              className="flex-shrink-0 px-3 text-gray-400 hover:text-[#14532D] focus:outline-none focus:ring-2 focus:ring-[#22C55E] rounded-lg"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <FaEye /> : <FaEyeSlash />}
+            </button>
             </div>
             {errors.password && (
               <p id="password-error" className="text-red-500 text-xs mt-1 ml-1">

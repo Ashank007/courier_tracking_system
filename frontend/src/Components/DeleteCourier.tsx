@@ -43,7 +43,7 @@ const DeleteCourier: React.FC = () => {
 
     const fetchCouriers = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/courier/get`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/courier/sent`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -53,6 +53,8 @@ const DeleteCourier: React.FC = () => {
 
         if (response.status === 401 || response.status === 403) {
           setCouriersError('Session expired. Please log in again.');
+          console.log(response);
+          
           localStorage.removeItem('token');
           navigate('/login');
           return;
@@ -70,7 +72,6 @@ const DeleteCourier: React.FC = () => {
         }
       } catch (err) {
         console.error('Fetch couriers error:', err);
-        setCouriersError('Network error. Please try again later.');
       }
     };
 
@@ -111,7 +112,6 @@ const DeleteCourier: React.FC = () => {
       }
     } catch (err) {
       console.error('Delete courier error:', err);
-      setError('Network error. Please try again later.');
     } finally {
       setIsLoading(false);
     }

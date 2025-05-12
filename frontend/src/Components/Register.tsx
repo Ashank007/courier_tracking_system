@@ -1,6 +1,6 @@
 import React, { useState,useEffect } from 'react';
 import { Link ,useNavigate} from 'react-router-dom';
-import { FaUser, FaEnvelope, FaLock } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaLock , FaEye,FaEyeSlash} from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 
@@ -19,6 +19,7 @@ const Register: React.FC = () => {
     role:'user'
   });
   const [errors, setErrors] = useState({ username: '', email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -32,6 +33,10 @@ const Register: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+const toggleShowPassword = () => {
+  setShowPassword(!showPassword);
+};
 
   const validate = () => {
     let tempErrors = { username: '', email: '', password: '' };
@@ -65,6 +70,9 @@ const Register: React.FC = () => {
       }
       else {
         toast.success(data.message);
+        formData.email = "";
+        formData.password = "";
+        formData.username = "";
       }
     } catch (error) {
       console.error('Error during registration:', error);
@@ -163,7 +171,7 @@ const Register: React.FC = () => {
                 <FaLock />
               </div>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 id="password"
                 name="password"
                 value={formData.password}
@@ -174,6 +182,14 @@ const Register: React.FC = () => {
                 aria-required="true"
                 aria-describedby={errors.password ? 'password-error' : undefined}
               />
+              <button
+              type="button"
+              onClick={toggleShowPassword}
+              className="flex-shrink-0 px-3 text-gray-400 hover:text-[#14532D] focus:outline-none focus:ring-2 focus:ring-[#22C55E] rounded-lg"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <FaEye /> : <FaEyeSlash />}
+            </button>
             </div>
             {errors.password && (
               <p id="password-error" className="text-red-500 text-xs mt-1 ml-1">

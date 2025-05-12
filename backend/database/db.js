@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS couriers (
   receiver TEXT NOT NULL,
   origin TEXT NOT NULL,
   destination TEXT NOT NULL,
-  status TEXT CHECK(status IN ('Pending', 'In Transit', 'Delivered', 'Cancelled')) NOT NULL DEFAULT 'Pending',
+  status TEXT CHECK(status IN ('Pending','Booked', 'Picked Up', 'In Transit', 'Out for Delivery', 'Delivered','Cancelled')) NOT NULL DEFAULT 'Pending',
   user_id INTEGER NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -32,12 +32,14 @@ CREATE TABLE IF NOT EXISTS couriers (
 )
 `).run();
 
+// db.prepare(`DROP TABLE activities`).run();
+
 db.prepare(`
   CREATE TABLE IF NOT EXISTS activities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     tracking_id TEXT NOT NULL,
-    action TEXT CHECK(action IN ('added','deleted')) NOT NULL,
+    action TEXT CHECK(action IN ('added')) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (tracking_id) REFERENCES couriers(tracking_id) ON DELETE CASCADE
