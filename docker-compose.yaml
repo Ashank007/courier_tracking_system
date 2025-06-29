@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: frontend/
+    ports:
+      - "5173:5173"
+    restart: always
+    env_file:
+      - ./frontend/.env
+    networks:
+      - courrier-tracking
+
+  backend:
+    build:
+      context: backend/
+    ports:
+      - "4300:4300"
+    restart: always
+    env_file:
+      - ./backend/.env
+    networks:
+      - courrier-tracking
+
+networks:
+  courrier-tracking:
