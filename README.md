@@ -35,7 +35,7 @@ A full-stack **Courier Tracking System** built with **Node.js (Express)** for ba
 
 ## 1️⃣ Build & Run with Docker Compose
 ```
-docker-compose up --build
+docker compose up --build
 ```
 
 This will:
