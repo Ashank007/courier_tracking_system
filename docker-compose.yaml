@@ -2,24 +2,25 @@ version: "3.8"
 
 services:
   frontend:
-    build:
-      context: frontend/
+    image: ashankguptaa/courier-frontend:latest
+    container_name: courier-frontend
     ports:
       - "5173:5173"
     restart: always
-    env_file:
-      - ./frontend/.env
+    environment:
+      - VITE_API_BASE_URL=http://localhost:4300
     networks:
       - courrier-tracking
 
   backend:
-    build:
-      context: backend/
+    image: ashankguptaa/courier-backend:latest
+    container_name: courier-backend
     ports:
       - "4300:4300"
     restart: always
-    env_file:
-      - ./backend/.env
+    environment:
+      - PORT=4300
+      - JWT_SECRET=aloopuri
     networks:
       - courrier-tracking
 
