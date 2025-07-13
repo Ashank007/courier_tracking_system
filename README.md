@@ -60,6 +60,12 @@ This will:
     └── .env
 ```
 
+## Admin Credentials
+```
+email :- admin@gmail.com
+password :- admin1234
+```
+
 ## 3️⃣ Environment Variables
 Backend .env
 ```
