@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   frontend:
-    image: ashankguptaa/courier-frontend:latest
+    image: ashankguptaa/courier-tracking-system-frontend
     container_name: courier-frontend
     ports:
       - "5173:5173"
@@ -13,7 +13,7 @@ services:
       - courrier-tracking
 
   backend:
-    image: ashankguptaa/courier-backend:latest
+    image: ashankguptaa/courier-tracking-system-backend 
     container_name: courier-backend
     ports:
       - "4300:4300"
